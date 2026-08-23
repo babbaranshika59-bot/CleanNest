@@ -1,0 +1,231 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-9) 0 var(--space-8);
+  background: linear-gradient(180deg, #eef7f0 0%, #f6f8f6 100%);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+}
+
+.hero-blob-1 {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, var(--color-primary-200), transparent 70%);
+  top: -120px;
+  right: -80px;
+}
+
+.hero-blob-2 {
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, var(--color-accent-200), transparent 70%);
+  bottom: -120px;
+  left: -60px;
+  opacity: 0.35;
+}
+
+.hero-grid-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(15, 138, 61, 0.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, #000, transparent 80%);
+}
+
+.hero-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: var(--space-7);
+}
+
+.hero-content {
+  max-width: 620px;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-200);
+  color: var(--color-primary-700);
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+  margin-bottom: var(--space-4);
+}
+
+.hero-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary-500);
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.2);
+  animation: hero-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes hero-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(22, 163, 74, 0.05);
+  }
+}
+
+.hero-title {
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-4);
+  color: var(--color-primary-900);
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+  max-width: 520px;
+}
+
+.hero-flow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  font-family: var(--font-head);
+  font-weight: 700;
+  color: var(--color-primary-700);
+}
+
+.hero-flow-step {
+  padding: 6px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-200);
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.hero-flow-arrow {
+  color: var(--color-primary-400);
+  font-weight: 700;
+}
+
+/* Visual */
+.hero-visual {
+  position: relative;
+  height: 420px;
+}
+
+.hero-card {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  width: 220px;
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+.hero-card strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.hero-card span {
+  font-size: 0.85rem;
+  color: var(--color-primary-600);
+  font-weight: 600;
+}
+
+.hero-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.hero-card-1 {
+  top: 20px;
+  left: 10px;
+  animation-delay: 0s;
+}
+
+.hero-card-2 {
+  top: 150px;
+  right: 20px;
+  animation-delay: 1.2s;
+}
+
+.hero-card-3 {
+  bottom: 30px;
+  left: 40px;
+  animation-delay: 2.4s;
+}
+
+.hero-badge {
+  position: absolute;
+  bottom: 60px;
+  right: 60px;
+  background: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-500));
+  color: #2a1a02;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-badge-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: var(--font-head);
+}
+
+.hero-badge-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+@keyframes hero-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 920px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+  }
+  .hero-visual {
+    display: none;
+  }
+}
