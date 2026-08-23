@@ -126,10 +126,7 @@ export default function SignupPage() {
           </a>
         </p>
 
-        <div className="auth-demo-note">
-          Stage 1 demo: accounts are stored only in your browser (localStorage). No real
-          backend or authentication service is used.
-        </div>
+        
       </form>
     </AuthLayout>
   );

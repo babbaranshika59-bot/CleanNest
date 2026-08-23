@@ -98,10 +98,7 @@ export default function LoginPage() {
           </a>
         </p>
 
-        <div className="auth-demo-note">
-          Stage 1 demo: any valid-looking email and password will log you in. No real
-          authentication is used.
-        </div>
+        
       </form>
     </AuthLayout>
   );
