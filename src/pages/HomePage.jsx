@@ -6,10 +6,12 @@ import { HowItWorks, WhyChoose, Stats, CtaBanner } from "../components/InfoSecti
 import { useBookingModals } from "../hooks/useBookingModals.jsx";
 import { categories, providers, stats, benefits, steps } from "../data/sampleData.js";
 import "../styles/Page.css";
+import { useRouter } from "../router/Router.jsx";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const { openBooking, openDetails, modals } = useBookingModals();
+  const { navigate } = useRouter();
 
   // DOM interaction: update document title for the Home page
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function HomePage() {
       <WhyChoose benefits={benefits} />
       <Stats stats={stats} />
       <HowItWorks steps={steps} />
-      <CtaBanner onBook={() => openBooking(providers[0])} />
+      <CtaBanner onBook={() => navigate("/providers")} />
 
       {modals}
     </div>

@@ -7,6 +7,7 @@ import { useRouter } from "../router/Router.jsx";
 import { categories, providers } from "../data/sampleData.js";
 import "../styles/Page.css";
 
+
 export default function ServicesPage() {
   const { query, navigate } = useRouter();
   const initialCategory = query.get("category") || "";
