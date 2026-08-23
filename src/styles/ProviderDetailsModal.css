@@ -1,0 +1,131 @@
+.pdm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pdm-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pdm-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.pdm-name {
+  margin: 0 0 2px;
+  font-size: 1.25rem;
+}
+
+.pdm-category {
+  color: var(--color-primary-600);
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.pdm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.pdm-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.pdm-stat-value {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.pdm-stat-label {
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
+}
+
+.pdm-section h4 {
+  font-size: 1rem;
+  margin-bottom: var(--space-2);
+}
+
+.pdm-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pdm-service {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border-radius: var(--radius-pill);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.pdm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.pdm-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdm-price-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-soft);
+}
+
+.pdm-price-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary-700);
+  font-family: var(--font-head);
+}
+
+.pdm-book {
+  padding: 12px 24px;
+}
+
+@media (max-width: 560px) {
+  .pdm-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pdm-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pdm-book {
+    width: 100%;
+  }
+}
