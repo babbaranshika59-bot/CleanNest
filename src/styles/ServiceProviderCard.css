@@ -166,3 +166,7 @@
     flex: 1;
   }
 }
+
+/* Mobile safety: let card rows wrap instead of forcing horizontal scroll. */
+.provider-card { min-width: 0; }
+.provider-card-stats, .provider-card-info, .provider-card-footer { flex-wrap: wrap; }
