@@ -1,226 +1,137 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Modal from "./Modal.jsx";
+import Button from "./ui/Button.jsx";
+import { Input, Select, Textarea, FormError } from "./ui/FormFields.jsx";
+import { useRouter } from "../router/Router.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { useBookings } from "../context/BookingContext.jsx";
+import { useFormState } from "../hooks/useFormState.js";
+import { PAYMENT_METHODS, TIME_SLOTS } from "../utils/constants.js";
+import { validateBooking } from "../utils/validators.js";
+import { formatCurrency, formatDate, todayISO } from "../utils/format.js";
 import "../styles/BookingModal.css";
 
-const initialForm = {
-  name: "",
-  phone: "",
-  service: "",
-  date: "",
-  time: "",
-  address: "",
-  notes: "",
-};
-
-const timeSlots = [
-  "08:00 AM",
-  "10:00 AM",
-  "12:00 PM",
-  "02:00 PM",
-  "04:00 PM",
-  "06:00 PM",
-];
-
-// Props: provider, open, onClose
-export default function BookingModal({ provider, open, onClose }) {
-  const [form, setForm] = useState(initialForm);
-  const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-
-  // Reset the form whenever a new provider/booking session opens
-  useEffect(() => {
-    if (open) {
-      setForm({
-        ...initialForm,
-        service: provider?.services?.[0] || "",
-      });
-      setErrors({});
-      setSubmitted(false);
-    }
-  }, [open, provider]);
-
-  if (!provider) return null;
-
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
-
-  const validate = () => {
-    const next = {};
-    if (!form.name.trim()) next.name = "Please enter your name.";
-    if (!/^\d{10}$/.test(form.phone.replace(/\D/g, "")))
-      next.phone = "Enter a valid 10-digit phone number.";
-    if (!form.service) next.service = "Select a service.";
-    if (!form.date) next.date = "Choose a preferred date.";
-    if (!form.time) next.time = "Choose a preferred time.";
-    if (!form.address.trim()) next.address = "Enter your address.";
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    setSubmitted(true);
-  };
-
-  const handleClose = () => {
+function Gate({ provider, onClose }) {
+  const { user } = useAuth();
+  const { navigate, route } = useRouter();
+  const goto = (path) => {
     onClose();
+    navigate(`${path}?next=${encodeURIComponent(route)}`);
   };
+
+  if (!user)
+    return (
+      <div className="booking-gate">
+        <div className="booking-success-icon" aria-hidden="true">🔒</div>
+        <h3>Log in to book {provider.name}</h3>
+        <p className="muted">Bookings are saved to your dashboard so you can track and manage them.</p>
+        <div className="booking-actions">
+          <Button variant="primary" onClick={() => goto("/login")}>Log in</Button>
+          <Button variant="outline" onClick={() => goto("/signup")}>Create account</Button>
+        </div>
+      </div>
+    );
+  return (
+    <div className="booking-gate">
+      <div className="booking-success-icon" aria-hidden="true">ℹ️</div>
+      <h3>Customer account required</h3>
+      <p className="muted">You're signed in as {user.role === "admin" ? "an admin" : "a service provider"}. Only customer accounts can book services.</p>
+      <Button variant="outline" onClick={onClose}>Close</Button>
+    </div>
+  );
+}
+
+function BookingForm({ provider, onClose }) {
+  const { user } = useAuth();
+  const { navigate } = useRouter();
+  const { createBooking } = useBookings();
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [created, setCreated] = useState(null);
+
+  const form = useFormState(
+    { name: user.name || "", phone: user.phone || "", service: provider.services?.[0] || "", date: "", time: "", paymentMethod: PAYMENT_METHODS[0], address: user.address || "", notes: "" },
+    validateBooking
+  );
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (submitting) return; // no duplicate submits
+    setFormError("");
+    if (!form.validateAll()) return;
+    setSubmitting(true);
+    const res = await createBooking(form.values, provider);
+    setSubmitting(false);
+    if (res.ok) setCreated(res.booking);
+    else setFormError(res.error);
+  };
+
+  if (created)
+    return (
+      <div className="booking-success">
+        <div className="booking-success-icon" aria-hidden="true">✓</div>
+        <h3>Booking request submitted!</h3>
+        <p className="muted">{provider.name} will review your request. You'll be notified when it is accepted.</p>
+        <div className="booking-success-summary">
+          <div className="booking-summary-row"><span>Booking ID</span><strong>{created.id}</strong></div>
+          <div className="booking-summary-row"><span>Provider</span><strong>{provider.name}</strong></div>
+          <div className="booking-summary-row"><span>Service</span><strong>{created.service}</strong></div>
+          <div className="booking-summary-row"><span>When</span><strong>{formatDate(created.date)} · {created.time}</strong></div>
+          <div className="booking-summary-row"><span>Price</span><strong>{formatCurrency(created.price)} (starting)</strong></div>
+        </div>
+        <Button block onClick={() => { onClose(); navigate(`/customer/bookings/${created.id}`); }}>View my booking</Button>
+        <Button block variant="ghost" onClick={onClose}>Done</Button>
+      </div>
+    );
+
+  if (provider.availability === "Unavailable" || !provider.services?.length)
+    return (
+      <div className="booking-gate">
+        <div className="booking-success-icon" aria-hidden="true">⏸</div>
+        <h3>Not available right now</h3>
+        <p className="muted">{provider.name} {provider.availability === "Unavailable" ? "is not taking new bookings at the moment." : "hasn't listed any services yet."} Please try another provider.</p>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </div>
+    );
 
   return (
-    <Modal open={open} onClose={handleClose} title="Book Your Service" maxWidth={520}>
-      {submitted ? (
-        <div className="booking-success">
-          <div className="booking-success-icon" aria-hidden="true">✓</div>
-          <h3>Booking Request Submitted!</h3>
-          <p className="muted">
-            This is a simulated Stage 1 booking — no request was sent to a server.
-          </p>
-          <div className="booking-success-summary">
-            <div className="booking-summary-row">
-              <span>Provider</span>
-              <strong>{provider.name}</strong>
-            </div>
-            <div className="booking-summary-row">
-              <span>Service</span>
-              <strong>{form.service}</strong>
-            </div>
-            <div className="booking-summary-row">
-              <span>Date</span>
-              <strong>{form.date}</strong>
-            </div>
-            <div className="booking-summary-row">
-              <span>Time</span>
-              <strong>{form.time}</strong>
-            </div>
-          </div>
-          <button className="btn btn-primary btn-block" onClick={handleClose}>
-            Done
-          </button>
+    <form className="booking-form" onSubmit={submit} noValidate>
+      <div className="booking-provider">
+        <div className="booking-provider-avatar" aria-hidden="true">{provider.name.charAt(0)}</div>
+        <div>
+          <span className="booking-provider-label">Booking with</span>
+          <strong className="booking-provider-name">{provider.name}</strong>
         </div>
-      ) : (
-        <form className="booking-form" onSubmit={handleSubmit} noValidate>
-          <div className="booking-provider">
-            <div className="booking-provider-avatar" aria-hidden="true">
-              {provider.name.charAt(0)}
-            </div>
-            <div>
-              <span className="booking-provider-label">Booking with</span>
-              <strong className="booking-provider-name">{provider.name}</strong>
-            </div>
-          </div>
+      </div>
+      <FormError>{formError}</FormError>
 
-          <div className="booking-grid">
-            <div className="field">
-              <label htmlFor="bk-name">Customer Name</label>
-              <input
-                id="bk-name"
-                className="input"
-                value={form.name}
-                onChange={handleChange("name")}
-                placeholder="Your full name"
-                autoComplete="name"
-              />
-              {errors.name && <div className="field-error">{errors.name}</div>}
-            </div>
+      <div className="booking-grid">
+        <Input label="Customer Name" required placeholder="Your full name" autoComplete="name" {...form.field("name")} />
+        <Input label="Phone Number" required placeholder="10-digit mobile number" inputMode="tel" {...form.field("phone")} />
+        <Select label="Service" required placeholder="Select a service" options={provider.services} {...form.field("service")} />
+        <Input label="Preferred Date" required type="date" min={todayISO()} {...form.field("date")} />
+        <Select label="Preferred Time" required placeholder="Select a time slot" options={TIME_SLOTS} {...form.field("time")} />
+        <Select label="Payment Method" required options={PAYMENT_METHODS} hint="No real payment is taken — demo only." {...form.field("paymentMethod")} />
+        <Input label="Address" required className="booking-full" placeholder="House no, street, area, city" {...form.field("address")} />
+        <Textarea label="Additional Notes" className="booking-full" placeholder="Anything the professional should know? (optional)" {...form.field("notes")} />
+      </div>
 
-            <div className="field">
-              <label htmlFor="bk-phone">Phone Number</label>
-              <input
-                id="bk-phone"
-                className="input"
-                value={form.phone}
-                onChange={handleChange("phone")}
-                placeholder="10-digit mobile number"
-                inputMode="tel"
-              />
-              {errors.phone && <div className="field-error">{errors.phone}</div>}
-            </div>
+      <div className="booking-actions">
+        <Button variant="ghost" onClick={onClose} disabled={submitting}>Cancel</Button>
+        <Button type="submit" loading={submitting}>Confirm Booking</Button>
+      </div>
+    </form>
+  );
+}
 
-            <div className="field">
-              <label htmlFor="bk-service">Service</label>
-              <select
-                id="bk-service"
-                className="select"
-                value={form.service}
-                onChange={handleChange("service")}
-              >
-                <option value="">Select a service</option>
-                {provider.services.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              {errors.service && <div className="field-error">{errors.service}</div>}
-            </div>
-
-            <div className="field">
-              <label htmlFor="bk-date">Preferred Date</label>
-              <input
-                id="bk-date"
-                className="input"
-                type="date"
-                value={form.date}
-                onChange={handleChange("date")}
-              />
-              {errors.date && <div className="field-error">{errors.date}</div>}
-            </div>
-
-            <div className="field">
-              <label htmlFor="bk-time">Preferred Time</label>
-              <select
-                id="bk-time"
-                className="select"
-                value={form.time}
-                onChange={handleChange("time")}
-              >
-                <option value="">Select a time slot</option>
-                {timeSlots.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-              {errors.time && <div className="field-error">{errors.time}</div>}
-            </div>
-
-            <div className="field booking-full">
-              <label htmlFor="bk-address">Address</label>
-              <input
-                id="bk-address"
-                className="input"
-                value={form.address}
-                onChange={handleChange("address")}
-                placeholder="House no, street, area, city"
-              />
-              {errors.address && <div className="field-error">{errors.address}</div>}
-            </div>
-
-            <div className="field booking-full">
-              <label htmlFor="bk-notes">Additional Notes</label>
-              <textarea
-                id="bk-notes"
-                className="textarea"
-                value={form.notes}
-                onChange={handleChange("notes")}
-                placeholder="Anything the professional should know? (optional)"
-              />
-            </div>
-          </div>
-
-          <div className="booking-actions">
-            <button type="button" className="btn btn-ghost" onClick={handleClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Confirm Booking
-            </button>
-          </div>
-        </form>
-      )}
+// Props: provider, open, onClose. The body is only mounted while open, so the form resets each time.
+export default function BookingModal({ provider, open, onClose }) {
+  const { user } = useAuth();
+  if (!provider) return null;
+  const canBook = user?.role === "customer";
+  return (
+    <Modal open={open} onClose={onClose} title="Book Your Service" maxWidth={520}>
+      {canBook ? <BookingForm provider={provider} onClose={onClose} /> : <Gate provider={provider} onClose={onClose} />}
     </Modal>
   );
 }

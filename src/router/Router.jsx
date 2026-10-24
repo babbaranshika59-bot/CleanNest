@@ -19,13 +19,16 @@ export function RouterProvider({ children }) {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  const navigate = (to) => {
+  // navigate(to)                    → pushes a history entry
+  // navigate(to, { replace: true }) → replaces it (used by redirects so Back still works)
+  const navigate = (to, { replace = false } = {}) => {
     const target = to.startsWith("#") ? to.slice(1) : to;
     if (getHashRoute() === target) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    window.location.hash = target;
+    if (replace) window.location.replace(`#${target}`);
+    else window.location.hash = target;
   };
 
   // path + query parsing, e.g. "/services?category=Cleaning"
@@ -59,4 +62,14 @@ export function Link({ to, children, className, onClick, ...rest }) {
       {children}
     </a>
   );
+}
+
+// Declarative redirect (replaces the current history entry).
+export function Redirect({ to }) {
+  const { navigate } = useRouter();
+  useEffect(() => {
+    navigate(to, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [to]);
+  return null;
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useRouter } from "../router/Router.jsx";
 import { useFavorites } from "../context/FavoritesContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import NotificationBell from "./ui/NotificationBell.jsx";
+import { ROLE_LABELS, dashboardPathFor } from "../utils/constants.js";
 import "../styles/Navbar.css";
 
 const navItems = [
@@ -16,13 +18,11 @@ export default function Navbar() {
   const { pathname, navigate } = useRouter();
   const { count } = useFavorites();
   const { user, logout } = useAuth();
-  const [open, setOpen] = useState(false);
+  // The mobile menu is "open for a specific path", so it closes automatically on navigation.
+  const [menu, setMenu] = useState({ open: false, path: pathname });
+  const open = menu.open && menu.path === pathname;
+  const setOpen = (v) => setMenu({ open: typeof v === "function" ? v(open) : v, path: pathname });
   const [scrolled, setScrolled] = useState(false);
-
-  // Close mobile menu whenever the route changes
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   // Add a solid background to the navbar after scrolling
   useEffect(() => {
@@ -71,9 +71,10 @@ export default function Navbar() {
 
           {user ? (
             <div className="navbar-auth">
-              <span className="navbar-user">Hi, {user.name}</span>
-              <button className="btn btn-outline navbar-btn" onClick={() => navigate("/login")}>
-                Account
+              <NotificationBell />
+              <span className="navbar-user" title={ROLE_LABELS[user.role]}>Hi, {user.name.split(" ")[0]}</span>
+              <button className="btn btn-outline navbar-btn" onClick={() => handleNav(dashboardPathFor(user.role))}>
+                Dashboard
               </button>
               <button
                 className="btn btn-ghost"

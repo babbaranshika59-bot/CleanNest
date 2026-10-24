@@ -1,4 +1,5 @@
 import Modal from "./Modal.jsx";
+import { Link } from "../router/Router.jsx";
 import "../styles/ProviderDetailsModal.css";
 
 // Props: provider (object|null), open, onClose, onBook
@@ -57,6 +58,10 @@ export default function ProviderDetailsModal({ provider, open, onClose, onBook }
             ))}
           </ul>
         </div>
+
+        <p className="pdm-fullprofile">
+          <Link to={`/providers/${provider.id}`} onClick={onClose}>Open full profile page →</Link>
+        </p>
 
         <div className="pdm-footer">
           <div className="pdm-price">

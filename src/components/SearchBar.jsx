@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import "../styles/SearchBar.css";
 
 // Controlled search bar with auto-focus support.
@@ -15,9 +15,9 @@ export default function SearchBar({
   const inputRef = useRef(null);
 
   // DOM interaction: focus the main search input when autoFocus is requested.
-  if (autoFocus && inputRef.current && document.activeElement !== inputRef.current) {
-    inputRef.current.focus();
-  }
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
