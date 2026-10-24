@@ -1,0 +1,30 @@
+/* Booking cards, details page, lifecycle timeline. */
+.booking-grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: var(--space-4); }
+.booking-card { background: var(--color-surface); border: 1px solid var(--color-border); border-top: 4px solid var(--color-border-strong); border-radius: var(--radius-md); padding: var(--space-4); display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow-xs); transition: box-shadow var(--transition), transform var(--transition); }
+.booking-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.booking-pending { border-top-color: var(--color-accent-400); }
+.booking-confirmed { border-top-color: var(--color-info); }
+.booking-completed { border-top-color: var(--color-success); }
+.booking-rejected { border-top-color: var(--color-error); }
+.booking-card-head { display: flex; justify-content: space-between; align-items: center; }
+.booking-id { font-family: var(--font-head); font-weight: 700; font-size: 0.85rem; color: var(--color-text-soft); letter-spacing: 0.03em; }
+.booking-card-title { margin: 4px 0 0; font-size: 1.05rem; }
+.booking-card-sub { margin: 0; color: var(--color-text-muted); font-size: 0.88rem; }
+.booking-card-meta { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; font-size: 0.9rem; }
+.booking-card-address { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.booking-card-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+
+.details-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); }
+.details-title { margin: 4px 0 2px; font-size: 1.5rem; }
+.details-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+
+.timeline { display: flex; gap: var(--space-2); margin: var(--space-5) 0 0; padding: 0; list-style: none; flex-wrap: wrap; }
+.timeline li { flex: 1 1 120px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; color: var(--color-text-soft); }
+.timeline li span { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--color-surface-alt); border: 2px solid var(--color-border-strong); font-size: 0.8rem; flex: none; }
+.timeline li.done, .timeline li.current { color: var(--color-text); }
+.timeline li.done span { background: var(--color-primary-500); border-color: var(--color-primary-500); color: #fff; }
+.timeline li.current span { border-color: var(--color-primary-500); color: var(--color-primary-700); background: var(--color-primary-50); }
+.timeline li.stopped span { background: var(--color-error); border-color: var(--color-error); color: #fff; }
+
+.booking-gate { text-align: center; padding: var(--space-4) 0; }
+.booking-gate .booking-actions { justify-content: center; }
