@@ -1,42 +1,28 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useMemo } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage.js";
+import { STORAGE_KEYS } from "../utils/constants.js";
 
 const FavoritesContext = createContext(null);
 
-const STORAGE_KEY = "cleannest.favorites";
+const isIdList = (v) => Array.isArray(v) && v.every((x) => typeof x === "number");
 
 export function FavoritesProvider({ children }) {
-  const [favorites, setFavorites] = useState([]);
+  // Lazy read + validation: corrupt or stale data falls back to []. (Fixes the Stage-1 bug where
+  // React StrictMode's double effect wiped saved favorites on reload.)
+  const [favorites, setFavorites] = useLocalStorage(STORAGE_KEYS.favorites, [], isIdList);
 
-  // Load saved favorites once on mount
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setFavorites(JSON.parse(raw));
-    } catch {
-      setFavorites([]);
-    }
-  }, []);
-
-  // Persist favorites whenever they change
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
-  }, [favorites]);
-
-  const toggleFavorite = (id) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
-  };
-
-  const isFavorite = (id) => favorites.includes(id);
-
-  return (
-    <FavoritesContext.Provider
-      value={{ favorites, toggleFavorite, isFavorite, count: favorites.length }}
-    >
-      {children}
-    </FavoritesContext.Provider>
+  const value = useMemo(
+    () => ({
+      favorites,
+      toggleFavorite: (id) =>
+        setFavorites((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id])),
+      isFavorite: (id) => favorites.includes(id),
+      count: favorites.length,
+    }),
+    [favorites, setFavorites]
   );
+
+  return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
 }
 
 export function useFavorites() {

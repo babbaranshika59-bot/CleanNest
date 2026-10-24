@@ -1,48 +1,88 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { authService } from "../services/authService.js";
+import { userService } from "../services/userService.js";
+import { readStorage, writeStorage, removeStorage } from "../utils/storage.js";
+import { STORAGE_KEYS } from "../utils/constants.js";
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = "cleannest.user";
-
-// Stage 1 simulated auth — stores a mock user in localStorage only.
-// No real backend, no real authentication service.
+// Demo authentication. The session stores ONLY the user id; the user record comes from the
+// (mock) API. Passwords are never stored in plaintext. Role checks in the UI are for demo
+// purposes only — a real backend must enforce them.
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(() => !!readStorage(STORAGE_KEYS.session, null)?.userId);
 
+  // Restore session once. Also delete the Stage-1 key that held a plaintext password.
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
+    removeStorage(STORAGE_KEYS.legacyUser);
+    const session = readStorage(STORAGE_KEYS.session, null);
+    if (!session?.userId) return;
+    let cancelled = false;
+    userService
+      .get(session.userId)
+      .then((u) => {
+        if (cancelled) return;
+        if (u.status === "blocked") removeStorage(STORAGE_KEYS.session);
+        else setUser(u);
+      })
+      .catch(() => !cancelled && removeStorage(STORAGE_KEYS.session)) // stale session (user deleted)
+      .finally(() => !cancelled && setInitializing(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const startSession = (u) => {
+    writeStorage(STORAGE_KEYS.session, { userId: u.id });
+    setUser(u);
+  };
+
+  const login = useCallback(async ({ email, password }) => {
+    try {
+      const u = await authService.login({ email, password });
+      startSession(u);
+      return { ok: true, user: u };
+    } catch (err) {
+      return { ok: false, error: err.message };
     }
-  }, [user]);
+  }, []);
 
-  const login = ({ email, password }) => {
-    // Simulated login: accept any non-empty credentials.
-    const name = email.split("@")[0] || "Member";
-    setUser({ name, email, password });
-    return { ok: true };
-  };
+  const signup = useCallback(async (data) => {
+    try {
+      const u = await authService.signup(data);
+      startSession(u);
+      return { ok: true, user: u };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  }, []);
 
-  const signup = ({ name, email, password }) => {
-    setUser({ name, email, password });
-    return { ok: true };
-  };
+  const logout = useCallback(() => {
+    removeStorage(STORAGE_KEYS.session);
+    setUser(null);
+  }, []);
 
-  const logout = () => setUser(null);
-
-  return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
-      {children}
-    </AuthContext.Provider>
+  const updateProfile = useCallback(
+    async (patch) => {
+      if (!user) return { ok: false, error: "Not signed in." };
+      const { name, email, phone, address } = patch;
+      try {
+        const updated = await userService.update(user.id, { name, email, phone, address });
+        setUser(updated);
+        return { ok: true, user: updated };
+      } catch (err) {
+        return { ok: false, error: err.message };
+      }
+    },
+    [user]
   );
+
+  const value = useMemo(
+    () => ({ user, initializing, login, signup, logout, updateProfile, setUser }),
+    [user, initializing, login, signup, logout, updateProfile]
+  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
