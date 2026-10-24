@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import Hero from "../components/Hero.jsx";
 import CategorySection from "../components/CategorySection.jsx";
-import ProviderList from "../components/ProviderList.jsx";
 import { HowItWorks, WhyChoose, Stats, CtaBanner } from "../components/InfoSections.jsx";
 import { useBookingModals } from "../hooks/useBookingModals.jsx";
-import { categories, providers, stats, benefits, steps } from "../data/sampleData.js";
+import ProviderResults from "../components/ProviderResults.jsx";
+import { useCategories, useProviderSearch } from "../hooks/useProviderSearch.js";
+import { categories as fallbackCategories, stats, benefits, steps } from "../data/sampleData.js";
 import "../styles/Page.css";
 import { useRouter } from "../router/Router.jsx";
 
@@ -22,16 +23,15 @@ export default function HomePage() {
     setSelectedCategory((prev) => (prev === name ? "" : name));
   };
 
-  const filteredProviders = selectedCategory
-    ? providers.filter((p) => p.category === selectedCategory)
-    : providers.slice(0, 6);
+  const { categories, loading: catsLoading } = useCategories();
+  const featured = useProviderSearch({ category: selectedCategory, pageSize: selectedCategory ? 12 : 6 });
 
   return (
     <div className="page">
       <Hero />
 
       <CategorySection
-        categories={categories}
+        categories={catsLoading && !categories.length ? fallbackCategories : categories}
         selectedCategory={selectedCategory}
         onSelect={handleCategorySelect}
       />
@@ -48,8 +48,9 @@ export default function HomePage() {
             </p>
           </div>
 
-          <ProviderList
-            providers={filteredProviders}
+          <ProviderResults
+            req={featured}
+            hidePagination
             onBook={openBooking}
             onView={openDetails}
             onClearFilters={() => setSelectedCategory("")}
@@ -65,4 +66,4 @@ export default function HomePage() {
       {modals}
     </div>
   );
-}   
+}

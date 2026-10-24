@@ -2,11 +2,9 @@ import { useEffect } from "react";
 import { HowItWorks, WhyChoose, Stats, CtaBanner } from "../components/InfoSections.jsx";
 import { useBookingModals } from "../hooks/useBookingModals.jsx";
 import { providers, stats, benefits, steps } from "../data/sampleData.js";
-import { useRouter } from "../router/Router.jsx";
 
 export default function HowItWorksPage() {
   const { openBooking, modals } = useBookingModals();
-  const { navigate } = useRouter();
 
   useEffect(() => {
     document.title = "How It Works — CleanNest";
@@ -28,7 +26,7 @@ export default function HowItWorksPage() {
       <HowItWorks steps={steps} />
       <WhyChoose benefits={benefits} />
       <Stats stats={stats} />
-      <CtaBanner onBook={() => navigate("/providers")} />
+      <CtaBanner onBook={() => openBooking(providers[0])} />
 
       {modals}
     </div>
